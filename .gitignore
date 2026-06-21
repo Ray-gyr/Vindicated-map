@@ -1,0 +1,6 @@
+*.csv
+node_modules/
+.env
+scraper_state.json
+reprocess_from_csv.ts
+classify_review_test.ts
