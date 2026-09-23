@@ -1,0 +1,133 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -118.4483454,
+          34.1654632
+        ]
+      },
+      "properties": {
+        "Name": "Acura of Sherman Oaks",
+        "Address": "5230 Van Nuys Blvd Sherman Oaks, CA 91401",
+        "Score": 0.00,
+        "Example Text": "Sample Text B"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -118.3840936,
+          33.976289
+        ]
+      },
+      "properties": {
+        "Name": "Airport Marina Ford",
+        "Address": "5880 W Centinela Ave Los Angeles, CA 90045",
+        "Score": 34.0,
+        "Example Text": "Sample Text C"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -118.3834641,
+          33.9761434
+        ]
+      },
+      "properties": {
+        "Name": "Airport Marina Honda",
+        "Address": "5850 W Centinela Ave Los Angeles, CA 90045",
+        "Score": 40.0,
+        "Example Text": "Sample Text D"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -118.2546724,
+          34.1392976
+        ]
+      },
+      "properties": {
+        "Name": "Alfa Romeo and Fiat of Glendale",
+        "Address": "600 S. Brand Blvd Glendale, CA 91204",
+        "Score": 52.0,
+        "Example Text": "Sample Text E"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -118.1378501,
+          34.5916742
+        ]
+      },
+      "properties": {
+        "Name": "Antelope Valley Nissan Inc.",
+        "Address": "451 Auto Center Drive Palmdale, CA 93551",
+        "Score": 89.0,
+        "Example Text": "Sample Text D"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -118.6623923,
+          34.1490933
+        ]
+      },
+      "properties": {
+        "Name": "Audi Calabasas",
+        "Address": "24650 Calabasas Rd Calabasas, CA 91302",
+        "Score": 100.0,
+        "Example Text": "Sample Text F"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -118.3400766,
+          34.0618768
+        ]
+      },
+      "properties": {
+        "Name": "Beverly Hills BMW",
+        "Address": "5070 Wilshire Blvd, Los Angeles, CA 90036",
+        "Score": 10.0,
+        "Example Text": "Sample Text A"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -118.5519176,
+          34.4178704
+        ]
+      },
+      "properties": {
+        "Name": "AutoNation Chrysler Dodge Jeep RAM Valencia",
+        "Address": "23820 Creekside Road Valencia, CA 91355",
+        "Score": 40.0,
+        "Example Text": "Sample Text H"
+      }
+    }
+  ]
+}

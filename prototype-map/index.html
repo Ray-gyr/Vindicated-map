@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>VINdicated Map</title>
+
+    <!-- MapLibre CSS -->
+    <link
+        href="https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.css"
+        rel="stylesheet"
+    >
+
+    <!-- Our CSS -->
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link
+    href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Lora:wght@600;700&display=swap"
+    rel="stylesheet"
+>
+</head>
+
+<body>
+
+    <div id="sidebar">
+
+        <div class="sidebar-header">
+
+    <div class="brand">
+        <img
+            src="images/VINdicated Logo.png"
+            alt="VINdicated logo"
+            class="brand-logo"
+        >
+
+        <div class="brand-name">
+            <span class="brand-vin">VIN</span><span class="brand-dicated">dicated</span>
+        </div>
+    </div>
+
+    <p class="sidebar-subtitle">
+        Dealership accountability map
+    </p>
+
+</div>
+
+        <input
+            type="text"
+            id="search"
+            placeholder="Search dealership or location..."
+        >
+
+        <div id="filters">
+
+            <h3>Risk level</h3>
+
+            <label>
+                <input
+                    type="checkbox"
+                    class="score-filter"
+                    value="low"
+                    checked
+                >
+                <span class="legend-dot low"></span>
+                Low concern
+                <span class="range">0–29</span>
+            </label>
+
+            <label>
+                <input
+                    type="checkbox"
+                    class="score-filter"
+                    value="medium"
+                    checked
+                >
+                <span class="legend-dot medium"></span>
+                Moderate concern
+                <span class="range">30–59</span>
+            </label>
+
+            <label>
+                <input
+                    type="checkbox"
+                    class="score-filter"
+                    value="high"
+                    checked
+                >
+                <span class="legend-dot high"></span>
+                High concern
+                <span class="range">60+</span>
+            </label>
+
+        </div>
+
+        <div class="results-heading">
+            Dealerships
+        </div>
+
+        <div id="dealership-list"></div>
+
+    </div>
+
+
+    <div id="map"></div>
+
+
+    <!-- MapLibre JavaScript -->
+    <script src="https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js"></script>
+
+    <!-- Our JavaScript -->
+    <script src="app.js"></script>
+
+</body>
+
+</html>
