@@ -1,3 +1,5 @@
+import * as maplibregl from "https://unpkg.com/maplibre-gl@6.11.0/dist/maplibre-gl.mjs";
+
 const map = new maplibregl.Map({
     container: "map",
     style: "https://tiles.openfreemap.org/styles/fiord",
@@ -19,6 +21,24 @@ const popup = new maplibregl.Popup({
 map.addControl(new maplibregl.NavigationControl());
 
 function styleVindicatedBasemap() {
+    // -----------------------------
+    // BASEMAP FONTS
+    // -----------------------------
+    document.fonts.load("16px Figtree");
+
+    const style = map.getStyle();
+
+    map.setGlyphs(null);
+
+    style.layers.forEach((layer) => {
+    if (layer.type === "symbol" && layer.layout?.["text-field"]) {
+        map.setLayoutProperty(
+            layer.id,
+            "text-font",
+            ["Figtree"]
+        );
+    }
+});
 // Hide maritime administrative boundaries.
 // They add visual clutter offshore but provide little value
 // for the dealership-focused map.
