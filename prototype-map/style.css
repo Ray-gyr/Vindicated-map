@@ -1,0 +1,456 @@
+/* ========================================
+   1. GLOBAL + MAP LAYOUT
+   ======================================== */
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: "Figtree", sans-serif;
+}
+
+button,
+input,
+.maplibregl-popup-content {
+    font-family: "Figtree", sans-serif;
+}
+
+#map {
+    position: fixed;
+    top: 0;
+    left: 320px;
+
+    width: calc(100% - 320px);
+    height: 100%;
+
+    z-index: 0;
+}
+
+
+/* ========================================
+   2. SIDEBAR
+   ======================================== */
+
+#sidebar {
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    width: 320px;
+    height: 100vh;
+
+    box-sizing: border-box;
+    padding: 26px 22px;
+
+    overflow-y: auto;
+
+    background: #151515;
+    color: #f5f5f5;
+
+    border-right: 1px solid #333;
+    box-shadow: 3px 0 16px rgba(0, 0, 0, 0.25);
+
+    z-index: 1;
+}
+
+.sidebar-header {
+    margin-bottom: 20px;
+}
+
+.sidebar-subtitle {
+    margin: 4px 0 0;
+
+    font-family: "Figtree", sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.4;
+
+    color: #aaa;
+}
+
+
+/* ========================================
+   3. VINdicated BRAND
+   ======================================== */
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    margin-bottom: 8px;
+}
+
+.brand-logo {
+    display: block;
+
+    width: 42px;
+    height: auto;
+}
+
+.brand-name {
+    font-family: "Figtree", sans-serif;
+    font-size: 31px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -1px;
+}
+
+.brand-vin {
+    color: #9c36b5;
+}
+
+.brand-dicated {
+    color: #ffffff;
+}
+
+
+/* ========================================
+   4. SEARCH
+   ======================================== */
+
+#search {
+    width: 100%;
+    box-sizing: border-box;
+
+    margin-top: 12px;
+    padding: 11px 12px;
+
+    background: #222;
+    color: #fff;
+
+    border: 1px solid #444;
+    border-radius: 6px;
+
+    font-size: 14px;
+    outline: none;
+}
+
+#search::placeholder {
+    color: #888;
+}
+
+#search:focus {
+    border-color: #9c36b5;
+    box-shadow: 0 0 0 2px rgba(156, 54, 181, 0.25);
+}
+
+
+/* ========================================
+   5. RISK FILTERS
+   ======================================== */
+
+#filters {
+    margin-top: 24px;
+    padding-bottom: 20px;
+
+    border-bottom: 1px solid #444;
+}
+
+#filters h3 {
+    margin: 0 0 12px;
+
+    font-family: "Figtree", sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+
+    color: #9c36b5;
+}
+
+#filters label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+
+    margin: 10px 0;
+
+    font-size: 14px;
+    color: #eee;
+
+    cursor: pointer;
+}
+
+.score-filter {
+    margin-right: 6px;
+}
+
+.legend-dot {
+    width: 10px;
+    height: 10px;
+
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.legend-dot.low {
+    background: #34a853;
+}
+
+.legend-dot.medium {
+    background: #fbbc04;
+}
+
+.legend-dot.high {
+    background: #ea4335;
+}
+
+.range {
+    margin-left: auto;
+
+    font-size: 12px;
+    color: #999;
+}
+
+
+/* ========================================
+   6. DEALERSHIP RESULTS
+   ======================================== */
+
+.results-heading {
+    margin-top: 20px;
+    margin-bottom: 4px;
+
+    font-family: "Figtree", sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+
+    color: #9c36b5;
+}
+
+#dealership-list {
+    margin-top: 8px;
+}
+
+.dealership-item {
+    margin: 0 -12px;
+    padding: 14px 12px;
+
+    border-bottom: 1px solid #333;
+    border-radius: 6px;
+
+    cursor: pointer;
+
+    transition:
+        background 0.15s ease,
+        transform 0.15s ease;
+}
+
+.dealership-item:hover {
+    background: rgba(156, 54, 181, 0.16);
+    transform: translateX(2px);
+}
+
+.dealership-item strong {
+    display: block;
+
+    margin-bottom: 6px;
+
+    font-family: "Lora", serif;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: -0.2px;
+
+    color: #f5f5f5;
+}
+
+
+/* Base score pill */
+
+.dealership-item .score-pill {
+    display: inline-block;
+
+    padding: 4px 7px;
+
+    border-radius: 4px;
+
+    font-family: "Figtree", sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+
+/* Low concern: 0–29 */
+
+.dealership-item .score-pill.low {
+    background: rgba(52, 168, 83, 0.22);
+    color: #72c98a;
+}
+
+
+/* Moderate concern: 30–59 */
+
+.dealership-item .score-pill.medium {
+    background: rgba(251, 188, 4, 0.22);
+    color: #f5ca4a;
+}
+
+
+/* High concern: 60+ */
+
+.dealership-item .score-pill.high {
+    background: rgba(234, 67, 53, 0.22);
+    color: #ef756b;
+}
+
+/* ========================================
+   7. MAP POPUPS
+   ======================================== */
+
+.maplibregl-popup {
+    max-width: 360px !important;
+}
+
+.maplibregl-popup-content {
+    width: 340px;
+    max-width: calc(100vw - 40px);
+
+    box-sizing: border-box;
+    padding: 0;
+
+    overflow: hidden;
+
+    background: #181818;
+    color: #f5f5f5;
+
+    border-radius: 10px;
+
+    box-shadow:
+        0 4px 18px rgba(0, 0, 0, 0.16);
+}
+
+.dealership-popup {
+    width: 100%;
+
+    box-sizing: border-box;
+    padding: 20px;
+
+    font-family: "Figtree", sans-serif;
+}
+
+.dealership-popup h2 {
+    margin: 0 24px 5px 0;
+
+    font-family: "Lora", serif;
+    font-size: 21px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.4px;
+
+    color: #fff;
+}
+
+.dealership-popup .address {
+    margin: 0 0 18px;
+
+    font-size: 13px;
+    line-height: 1.45;
+
+    color: #aaa;
+
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.dealership-popup .score {
+    margin: 0 0 16px;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    color: #aaa;
+}
+
+.dealership-popup .score strong {
+    display: block;
+
+    margin-top: 2px;
+
+    font-family: "Figtree", sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -1px;
+
+    color: #fff;
+}
+
+.dealership-popup hr {
+    margin: 16px 0;
+
+    border: 0;
+    border-top: 1px solid #3a3a3a;
+}
+
+.dealership-popup hr + strong {
+    display: block;
+
+    margin-bottom: 7px;
+
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+
+    color: #9c36b5;
+}
+
+.dealership-popup p:last-child {
+    margin: 0;
+
+    font-size: 14px;
+    line-height: 1.5;
+
+    color: #ddd;
+}
+
+
+/* ========================================
+   8. MAPLIBRE POPUP CONTROLS
+   ======================================== */
+
+.maplibregl-popup-close-button {
+    top: 8px;
+    right: 8px;
+
+    width: 28px;
+    height: 28px;
+
+    border-radius: 50%;
+
+    font-size: 20px;
+    line-height: 24px;
+
+    color: #aaa;
+}
+
+.maplibregl-popup-close-button:hover {
+    background: #333;
+    color: #fff;
+}
+
+/* Match popup pointer to dark popup */
+.maplibregl-popup-anchor-bottom .maplibregl-popup-tip {
+    border-top-color: #181818;
+}
+
+.maplibregl-popup-anchor-top .maplibregl-popup-tip {
+    border-bottom-color: #181818;
+}
+
+.maplibregl-popup-anchor-left .maplibregl-popup-tip {
+    border-right-color: #181818;
+}
+
+.maplibregl-popup-anchor-right .maplibregl-popup-tip {
+    border-left-color: #181818;
+}
