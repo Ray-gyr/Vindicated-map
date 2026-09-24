@@ -58,6 +58,7 @@ classified_reviews ──compute_tiers.ts──▶ dealership_tiers
 | `scripts/backfill_locations.ts` | Fills `raw_dealerships.location` for rows scraped before coordinates were collected. Already run; only needed again for old rows. |
 | `scripts/classify_reviews.ts` | Sends each review to the LLM with the prompt in `scripts/prompt.ts` and stores the categories and supporting excerpts. Currently targets the N dealerships nearest Westwood (default 100). Skips reviews already classified by the current version, so it is safe to re-run. |
 | `scripts/compute_tiers.ts` | Aggregates classified reviews into one tier per dealership. |
+| `scripts/export_geojson.ts` | Writes the classified dealerships, including every review with its categories and excerpts, to `prototype-map/data/dealerships.geojson` in the prototype's static format (`Score` is replaced by `Tier`). |
 | `db/*.sql` | Database migrations, already applied. Run in order on a fresh database. |
 
 Run scripts with `npx tsx scripts/<name>.ts`. They read `DB_CONN_STRING`, `API_KEY` (Google Places) and `OPENAI_API_KEY` from `.env`.
