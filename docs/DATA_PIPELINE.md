@@ -92,7 +92,11 @@ One row per dealership per classifier version.
 - **`dealership_tiers`**: the aggregated result behind `dealership_map`.
 
 ### Classifier versions
-Every run stores results under a version string, so older runs remain in the tables for comparison. The current version is **`1.5.0-gpt-5-mini`**; earlier versions (`1.1.0-gpt-4o-mini` through `1.4.0-gpt-5-mini`) were prompt iterations on the same data. **Queries for the map must filter on the current version**, otherwise each dealership appears once per version:
+Results are keyed by `(review_id, classifier_version)` and `(place_id, classifier_version)`, so a new prompt or model can be run side by side with the current one and compared before switching over.
+
+**Policy: the database keeps only the final version.** When testing a new version, bump `classifierVersion` in `scripts/classify_reviews.ts`, run it and `compute_tiers.ts`, compare against the current version, and once the new one is accepted delete the old version's rows from `dealership_tiers` and `classified_reviews`.
+
+The current (and only) version is **`1.5.0-gpt-5-mini`**. Earlier prompt iterations (`1.1.0` to `1.4.0`) have been removed from the database. Map queries should still filter on the version, so that a test run in progress never shows up on the map:
 
 ```sql
 SELECT * FROM dealership_map WHERE classifier_version = '1.5.0-gpt-5-mini';
