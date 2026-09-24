@@ -1,5 +1,3 @@
-import * as fs from 'fs';
-import * as path from 'path';
 import { Pool } from 'pg';
 import 'dotenv/config';
 import { ChatOpenAI } from '@langchain/openai';
@@ -7,7 +5,13 @@ import { reviewClassificationSchema, reviewPromptTemplate, systemInstructions } 
 
 const API_KEY = process.env.OPENAI_API_KEY;
 const DB_CONN_STRING = process.env.DB_CONN_STRING;
-const classifierVersion = "1.0.0-gpt-4o-mini";
+const classifierVersion = "1.5.0-gpt-5-mini";
+
+// Test batch: the dealerships nearest Westwood, LA
+// Usage: npx tsx scripts/classify_reviews.ts [dealership_count]   (default 100)
+const TARGET_LAT = 34.0635;
+const TARGET_LNG = -118.4455;
+const TARGET_DEALERSHIP_COUNT = process.argv[2] ? parseInt(process.argv[2], 10) : 100;
 
 if (!API_KEY || !DB_CONN_STRING) {
     console.error("Missing OPENAI_API_KEY or DB_CONN_STRING in environment variables.");
@@ -39,8 +43,9 @@ async function main() {
     console.log("Starting review classification...");
 
     const llm = new ChatOpenAI({
-        model: "gpt-4o-mini",
-        temperature: 0,
+        // gpt-5 models are reasoning models: no temperature, effort controls cost/quality
+        model: "gpt-5-mini",
+        reasoning: { effort: "medium" },
         apiKey: API_KEY
     });
 
@@ -49,17 +54,27 @@ async function main() {
     });
 
     try {
-        // Fetch 200 reviews for processing
-        console.log("Fetching 200 reviews from database...");
-        // Exclude those we already processed (status = 'processed') if status column is active, 
-        // but for now we just get 50 rows.
+        // Reviews of the TARGET_DEALERSHIP_COUNT dealerships nearest the target point that
+        // have not been classified by this classifier version yet
+        console.log(`Fetching reviews for the ${TARGET_DEALERSHIP_COUNT} dealerships nearest (${TARGET_LAT}, ${TARGET_LNG})...`);
         const result = await pool.query(`
-            SELECT review_id, text 
-            FROM raw_reviews 
-            WHERE text IS NOT NULL AND text != ''
-            AND (status = 'unprocessed' OR status IS NULL)
-            LIMIT 200
-        `);
+            WITH target AS (
+                SELECT d.place_id
+                FROM raw_dealerships d
+                WHERE d.location IS NOT NULL
+                AND EXISTS (SELECT 1 FROM raw_reviews r WHERE r.place_id = d.place_id AND r.text <> '')
+                ORDER BY d.location <-> ST_SetSRID(ST_MakePoint($2, $1), 4326)::geography
+                LIMIT $3
+            )
+            SELECT r.review_id, r.text
+            FROM raw_reviews r
+            JOIN target USING (place_id)
+            WHERE r.text IS NOT NULL AND r.text <> ''
+            AND NOT EXISTS (
+                SELECT 1 FROM classified_reviews c
+                WHERE c.review_id = r.review_id AND c.classifier_version = $4
+            )
+        `, [TARGET_LAT, TARGET_LNG, TARGET_DEALERSHIP_COUNT, classifierVersion]);
 
         const reviews = result.rows;
         console.log(`Found ${reviews.length} reviews.`);
@@ -68,9 +83,6 @@ async function main() {
             console.log("No reviews found. Exiting.");
             return;
         }
-
-        const classifiedDate = new Date().toISOString();
-        const outputPath = path.join(__dirname, 'classified_reviews.csv');
 
         console.log("Processing reviews with concurrency limit of 10...");
 
@@ -86,16 +98,31 @@ async function main() {
 
                 const classification = await structuredLlm.invoke(promptValue);
 
-                const outputRecord = {
-                    review_id: review.review_id,
-                    original_text: review.text,
-                    categories: classification.categories,
-                    excerpts: classification.excerpts,
-                    classifier_version: classifierVersion,
-                    classified_date: classifiedDate
-                };
+                // Drop excerpts that are not actually in the review, then keep only
+                // categories that still have at least one supporting excerpt
+                const normalize = (str: string) => str.toLowerCase().replace(/\s+/g, ' ').trim();
+                const reviewText = normalize(review.text);
+                const excerpts = classification.excerpts
+                    .map(e => ({ ...e, excerpts: e.excerpts.filter(x => reviewText.includes(normalize(x))) }))
+                    .filter(e => e.excerpts.length > 0);
+                const dropped = classification.excerpts.reduce((n, e) => n + e.excerpts.length, 0)
+                    - excerpts.reduce((n, e) => n + e.excerpts.length, 0);
+                if (dropped > 0) {
+                    console.warn(`  Review ${review.review_id}: dropped ${dropped} excerpt(s) not found in review text`);
+                }
+                const categories = [...new Set(excerpts.map(e => e.categoryId))].sort((a, b) => a - b);
 
-                return outputRecord;
+                await pool.query(`
+                    INSERT INTO classified_reviews (review_id, classifier_version, categories, excerpts)
+                    VALUES ($1, $2, $3, $4)
+                    ON CONFLICT (review_id, classifier_version)
+                    DO UPDATE SET
+                        categories = EXCLUDED.categories,
+                        excerpts = EXCLUDED.excerpts,
+                        classified_at = now()
+                `, [review.review_id, classifierVersion, categories, JSON.stringify(excerpts)]);
+
+                return review.review_id;
             } catch (err) {
                 console.error(`Error processing review ID ${review.review_id}:`, err);
                 return null;
@@ -103,56 +130,11 @@ async function main() {
         };
 
         const results = await asyncPool(10, reviews, processReview);
-
-        // Filter out nulls from errors
-        const validResults = results.filter(r => r !== null);
-
-        console.log(`Writing ${validResults.length} records to ${outputPath}...`);
-
-        // Function to escape CSV fields
-        const escapeCSV = (val: any) => {
-            if (val === null || val === undefined) return '';
-            const str = typeof val === 'object' ? JSON.stringify(val) : String(val);
-            if (str.includes(',') || str.includes('\n') || str.includes('"')) {
-                return `"${str.replace(/"/g, '""')}"`;
-            }
-            return str;
-        };
-
-        // Check if file exists to write header
-        const fileExists = fs.existsSync(outputPath);
-
-        let csvContent = '';
-        if (!fileExists) {
-            csvContent += 'review_id,original_text,categories,excerpts,classifier_version,classified_date\n';
+        const succeeded = results.filter(r => r !== null).length;
+        console.log(`Wrote ${succeeded}/${reviews.length} classifications to classified_reviews (version ${classifierVersion}).`);
+        if (succeeded < reviews.length) {
+            console.log("Re-run to retry the failed reviews; completed ones are skipped.");
         }
-
-        for (const r of validResults) {
-            const row = [
-                r.review_id,
-                r.original_text,
-                r.categories,
-                r.excerpts,
-                r.classifier_version,
-                r.classified_date
-            ].map(escapeCSV).join(',');
-            csvContent += row + '\n';
-        }
-
-        await fs.promises.appendFile(outputPath, csvContent, 'utf-8');
-
-        // Mark as processed in database
-        if (validResults.length > 0) {
-            console.log("Updating database to mark reviews as processed...");
-            const processedIds = validResults.map(r => r.review_id);
-            // $1 is an array of IDs
-            await pool.query(
-                `UPDATE raw_reviews SET status = 'processed' WHERE review_id = ANY($1)`,
-                [processedIds]
-            );
-        }
-
-        console.log("Done!");
     } catch (error) {
         console.error("Fatal error:", error);
     } finally {

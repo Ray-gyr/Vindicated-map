@@ -1,5 +1,7 @@
 # Vindicated Map - Data Pipeline Reference
 
+> **Building the map or working with the database?** Start with [docs/DATA_PIPELINE.md](docs/DATA_PIPELINE.md). It covers the current tables, tiers, how to read the data from Supabase, and operational warnings (Supabase inactivity pausing, expiring API keys).
+
 ## Overview
 This repository contains the core logic and prompts for the **Review Fetching and Classification Pipeline**. It is intended to serve as a reference for the actual website/backend team to integrate into the main production environment. 
 
@@ -18,7 +20,7 @@ For integrating into the main website's backend, the engineering team should foc
 - **Action**: The backend team should port these exact strings and the structured output schema into the main app's AI service.
 
 ### 2. LLM Execution Logic (`scripts/classify_reviews.ts`)
-Demonstrates how to invoke the OpenAI model (`gpt-4o-mini`) using LangChain's `withStructuredOutput`. 
+Demonstrates how to invoke the OpenAI model (`gpt-5-mini`) using LangChain's `withStructuredOutput`. 
 - **Action**: Use this as a reference for handling concurrency, invoking the LLM with the defined prompt, and parsing the JSON output.
 
 ### 3. Google API Fetching Logic (`scripts/fetch_review.ts`)
@@ -29,7 +31,7 @@ Shows the exact `POST` request to `https://places.googleapis.com/v1/places:searc
 
 ## Database Schema Reference
 
-To support this pipeline, the production database needs to store the raw data before passing it to the AI. Here is the reference schema used during development:
+To support this pipeline, the production database needs to store the raw data before passing it to the AI. Here is the reference schema for the raw tables. The classification output tables (`classified_reviews`, `dealership_tiers`) and the `dealership_map` view are documented in [docs/DATA_PIPELINE.md](docs/DATA_PIPELINE.md), and the SQL is in `db/`.
 
 **`raw_dealerships`**
 - `place_id` (TEXT, Primary Key): Unique Google Place ID.
@@ -38,6 +40,7 @@ To support this pipeline, the production database needs to store the raw data be
 - `zip_code` (TEXT): Zip code area where the dealership was searched.
 - `rating` (NUMERIC): Average user rating.
 - `user_rating_count` (INTEGER): Total number of ratings.
+- `location` (GEOGRAPHY(Point, 4326)): Dealership coordinates (PostGIS).
 
 **`raw_reviews`**
 - `review_id` (SERIAL, Primary Key): Internal unique ID.
@@ -46,7 +49,7 @@ To support this pipeline, the production database needs to store the raw data be
 - `text` (TEXT): The content of the review.
 - `rating` (NUMERIC): Star rating given by the user.
 - `publish_time` (TIMESTAMP WITH TIME ZONE): Date when the review was posted.
-- `status` (VARCHAR): Status flag (e.g., 'unprocessed', 'processed') to track AI queue state.
+- `status` (VARCHAR): Legacy flag, no longer used. Classification state is tracked per version in `classified_reviews`.
 
 ---
 

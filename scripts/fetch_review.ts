@@ -43,6 +43,7 @@ interface Place {
     formattedAddress?: string;
     rating?: number;
     userRatingCount?: number;
+    location?: { latitude: number; longitude: number };
     reviews?: PlaceReview[];
 }
 
@@ -66,6 +67,8 @@ async function initDB() {
             fetch_date TIMESTAMP WITH TIME ZONE
         );
     `);
+    await pool.query(`CREATE EXTENSION IF NOT EXISTS postgis;`);
+    await pool.query(`ALTER TABLE raw_dealerships ADD COLUMN IF NOT EXISTS location geography(Point, 4326);`);
 
     // Create raw_reviews table
     await pool.query(`
@@ -110,10 +113,13 @@ async function testGooglePlacesAPI() {
 
     await initDB();
 
-    const allZipCodes = await getZipCodes();
+    // ZIP_CODES=90024,90025 overrides the CSV list, e.g. to scrape one area for testing.
+    // It gets its own state file so it doesn't disturb the resume point of the full run.
+    const zipOverride = process.env.ZIP_CODES?.split(',').map(z => z.trim()).filter(z => z.length > 0);
+    const allZipCodes = zipOverride?.length ? zipOverride : await getZipCodes();
 
     // State file for resume capability
-    const stateFile = path.join(process.cwd(), 'scraper_state.json');
+    const stateFile = path.join(process.cwd(), zipOverride?.length ? 'scraper_state_custom.json' : 'scraper_state.json');
     let startIndex = 0;
 
     try {
@@ -163,7 +169,7 @@ async function testGooglePlacesAPI() {
                     headers: {
                         'Content-Type': 'application/json',
                         'X-Goog-Api-Key': API_KEY as string,
-                        'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.reviews,nextPageToken'
+                        'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.location,places.reviews,nextPageToken'
                     },
                     body: JSON.stringify(requestBody)
                 });
@@ -211,18 +217,21 @@ async function testGooglePlacesAPI() {
                         const address = place.formattedAddress || '';
                         const rating = place.rating !== undefined ? place.rating : null;
                         const userRatingCount = place.userRatingCount !== undefined ? place.userRatingCount : null;
+                        const lat = place.location?.latitude ?? null;
+                        const lng = place.location?.longitude ?? null;
                         const fetchDate = new Date().toISOString();
 
                         // Insert Dealership
                         await client.query(`
-                            INSERT INTO raw_dealerships (place_id, name, address, zip_code, rating, user_rating_count, fetch_date)
-                            VALUES ($1, $2, $3, $4, $5, $6, $7)
+                            INSERT INTO raw_dealerships (place_id, name, address, zip_code, rating, user_rating_count, fetch_date, location)
+                            VALUES ($1, $2, $3, $4, $5, $6, $7, ST_SetSRID(ST_MakePoint($9, $8), 4326)::geography)
                             ON CONFLICT (place_id) 
                             DO UPDATE SET 
                                 fetch_date = EXCLUDED.fetch_date,
                                 rating = EXCLUDED.rating,
-                                user_rating_count = EXCLUDED.user_rating_count
-                        `, [placeId, name, address, zip, rating, userRatingCount, fetchDate]);
+                                user_rating_count = EXCLUDED.user_rating_count,
+                                location = COALESCE(EXCLUDED.location, raw_dealerships.location)
+                        `, [placeId, name, address, zip, rating, userRatingCount, fetchDate, lat, lng]);
 
                         // Insert Reviews
                         if (place.reviews && place.reviews.length > 0) {
