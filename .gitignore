@@ -5,3 +5,5 @@ scraper_state.json
 reprocess_from_csv.ts
 classify_review_test.ts
 .DS_Store
+.env.backup*
+archive/
