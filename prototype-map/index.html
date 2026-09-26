@@ -56,43 +56,25 @@
 
         <div id="filters">
 
-            <h3>Risk level</h3>
+    <h3>Risk level</h3>
 
-            <label>
-                <input
-                    type="checkbox"
-                    class="score-filter"
-                    value="low"
-                    checked
-                >
-                <span class="legend-dot low"></span>
-                Low concern
-                <span class="range">0–29</span>
-            </label>
+    <label class="filter-row">
+        <input type="checkbox" class="tier-filter" value="clear" checked>
+        <span class="legend-dot low"></span>
+        <span>Clear</span>
+    </label>
 
-            <label>
-                <input
-                    type="checkbox"
-                    class="score-filter"
-                    value="medium"
-                    checked
-                >
-                <span class="legend-dot medium"></span>
-                Moderate concern
-                <span class="range">30–59</span>
-            </label>
+    <label class="filter-row">
+        <input type="checkbox" class="tier-filter" value="caution" checked>
+        <span class="legend-dot medium"></span>
+        <span>Caution</span>
+    </label>
 
-            <label>
-                <input
-                    type="checkbox"
-                    class="score-filter"
-                    value="high"
-                    checked
-                >
-                <span class="legend-dot high"></span>
-                High concern
-                <span class="range">60+</span>
-            </label>
+    <label class="filter-row">
+        <input type="checkbox" class="tier-filter" value="flagged" checked>
+        <span class="legend-dot high"></span>
+        <span>Flagged</span>
+    </label>
 
         </div>
 
@@ -104,13 +86,10 @@
 
     </div>
 
-
     <div id="map"></div>
 
-
-    <!-- MapLibre JavaScript -->
+    <!-- Map JavaScript -->
     <script type="module" src="app.js"></script>
-</script>
 
 </body>
 

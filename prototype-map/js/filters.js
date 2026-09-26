@@ -6,32 +6,32 @@ export function initializeFilters(map) {
 
         const searchText = searchBox.value.toLowerCase();
 
-        const low = document.querySelector('input[value="low"]').checked;
-        const medium = document.querySelector('input[value="medium"]').checked;
-        const high = document.querySelector('input[value="high"]').checked;
+        const clear = document.querySelector('input[value="clear"]').checked;
+const caution = document.querySelector('input[value="caution"]').checked;
+const flagged = document.querySelector('input[value="flagged"]').checked;
+        // Build list of tiers currently selected
+        const selectedTiers = [];
+
+        if (clear) {
+            selectedTiers.push("clear");
+        }
+
+        if (caution) {
+            selectedTiers.push("caution");
+        }
+
+        if (flagged) {
+            selectedTiers.push("flagged");
+        }
 
         // Filter map markers
-        const scoreConditions = ["any"];
-
-        if (low) {
-            scoreConditions.push(["<", ["get", "Score"], 30]);
-        }
-
-        if (medium) {
-            scoreConditions.push([
-                "all",
-                [">=", ["get", "Score"], 30],
-                ["<", ["get", "Score"], 60]
-            ]);
-        }
-
-        if (high) {
-            scoreConditions.push([">=", ["get", "Score"], 60]);
-        }
-
         const mapFilter = [
             "all",
-            scoreConditions,
+            [
+                "in",
+                ["get", "Tier"],
+                ["literal", selectedTiers]
+            ],
             [
                 "any",
                 [
@@ -53,18 +53,16 @@ export function initializeFilters(map) {
         // Filter sidebar
         document.querySelectorAll(".dealership-item").forEach(item => {
 
-            const score = Number(item.dataset.score);
+            const tier = item.dataset.tier;
 
             const matchesSearch =
                 item.dataset.search.includes(searchText);
 
-            const matchesScore =
-                (low && score < 30) ||
-                (medium && score >= 30 && score < 60) ||
-                (high && score >= 60);
+            const matchesTier =
+                selectedTiers.includes(tier);
 
             item.style.display =
-                matchesSearch && matchesScore ? "block" : "none";
+                matchesSearch && matchesTier ? "block" : "none";
         });
     }
 
@@ -72,7 +70,7 @@ export function initializeFilters(map) {
     searchBox.addEventListener("input", applyFilters);
 
     // Run filter when checkbox changes
-    document.querySelectorAll(".score-filter").forEach(checkbox => {
+    document.querySelectorAll(".tier-filter").forEach(checkbox => {
         checkbox.addEventListener("change", applyFilters);
     });
 }
