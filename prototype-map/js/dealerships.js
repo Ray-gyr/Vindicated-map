@@ -16,13 +16,15 @@ export function addDealershipLayers(map) {
             "circle-radius": 24,
 
             "circle-color": [
-                "step",
-                ["get", "Score"],
+    "match",
+    ["get", "Tier"],
 
-                "#34a853",
-                30, "#fbbc04",
-                60, "#ea4335"
-            ],
+    "clear", "#34a853",
+    "caution", "#fbbc04",
+    "flagged", "#ea4335",
+
+    "#999999"
+],
 
             "circle-opacity": 0.5,
             "circle-blur": 0.8
@@ -39,13 +41,15 @@ export function addDealershipLayers(map) {
             "circle-radius": 9,
 
             "circle-color": [
-                "step",
-                ["get", "Score"],
+    "match",
+    ["get", "Tier"],
 
-                "#34a853",
-                30, "#fbbc04",
-                60, "#ea4335"
-            ],
+    "clear", "#34a853",
+    "caution", "#fbbc04",
+    "flagged", "#ea4335",
+
+    "#999999"
+],
 
             "circle-stroke-color": "#ffffff",
             "circle-stroke-width": 2.5
